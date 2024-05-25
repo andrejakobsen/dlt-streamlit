@@ -1,2 +1,4 @@
-# dlt-streamlit
-Streamlit front-end for creating dlt pipelines.
+# dlt_streamlit
+
+> Author: Kristian André Jakobsen  
+> Description: Streamlit app for creating dlt pipelines.

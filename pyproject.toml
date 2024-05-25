@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "my_package"
+authors = [
+    {name = "Kristian André Jakobse", email = "kristian.a.jakobsen@gmail.com"},
+]
+description = "Streamlit app for creating dlt pipelines."
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["one", "two"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "streamlit",
+    "dlt",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = ["dlt[duckdb]"]
