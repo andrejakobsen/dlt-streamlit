@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "streamlit",
     "dlt",
+    "pydantic",
 ]
 dynamic = ["version"]
 
