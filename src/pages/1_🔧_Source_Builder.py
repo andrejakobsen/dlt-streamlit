@@ -60,8 +60,6 @@ def get_client_config():
 
 def get_resource_standard_config(name: str = "Default"):
     resource_defaults_config = {}
-    if name != "Default":
-        resource_defaults_config["name"] = name
     col_1, col_2 = st.columns(2)
     with col_1:
         resource_defaults_config["write_disposition"] = st.radio(
@@ -71,7 +69,6 @@ def get_resource_standard_config(name: str = "Default"):
         resource_defaults_config["primary_key"] = st.text_input(
             f"{name} primary key", placeholder="id"
         )
-    resource_defaults_config["endpoint"] = {"params": {}}
     left, right = st.columns(2)
     params = {}
     params_type = "JSON"
@@ -127,26 +124,32 @@ def get_resource_standard_config(name: str = "Default"):
         with left:
             st.markdown("Resulting parameters")
             st.json(params)
-
+        resource_defaults_config["endpoint"] = {"params": params}
     return resource_defaults_config
 
 
 def get_resources_config(endpoint_idx):
+    resource_config = {}
     left, right = st.columns(2)
     with left:
         name = st.text_input(
             f"Name of resource {endpoint_idx+1}", placeholder="Issues in dlt repo"
         )
     if name != "":
+        resource_config["name"] = name
         with right:
             endpoint = st.text_input(f"Endpoint for {name}", placeholder="issues")
         if endpoint != "":
-            use_default_params = st.checkbox(
+            use_custom_params = st.checkbox(
                 f"Use custom configuration for '{name}'",
             )
-            if use_default_params:
-                resource_config = get_resource_standard_config(name)
-    return {name: "some"}
+            if use_custom_params:
+                resource_config |= get_resource_standard_config(name)
+        if "endpoint" not in resource_config.keys():
+            resource_config["endpoint"] = {}
+        resource_config["endpoint"]["path"] = endpoint
+
+    return resource_config
 
 
 def _get_auth_input(auth_type):

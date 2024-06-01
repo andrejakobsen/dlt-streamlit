@@ -5,7 +5,9 @@ import streamlit as st
 st.set_page_config(page_title="Pipelines", page_icon="🚰")
 st.title("Build Your `dlt` Pipeline")
 
-source_tab, destination_tab = st.tabs(["Source", "Destination"])
+source_tab, destination_tab, run_pipeline = st.tabs(
+    ["Source", "Destination", "Run Pipeline"]
+)
 
 with source_tab:
     source_name = st.selectbox(
@@ -25,3 +27,5 @@ with destination_tab:
         st.markdown(".")
     with right:
         schema = st.text_input("Schema")
+with run_pipeline:
+    st.button("Run")
