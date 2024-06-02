@@ -1,4 +1,5 @@
 import streamlit as st
+from dlt.helpers.streamlit_app.widgets import logo
 
 st.title("Welcome!")
 st.markdown("""
