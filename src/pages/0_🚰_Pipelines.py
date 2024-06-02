@@ -1,31 +1,56 @@
 import streamlit as st
+from utils import (
+    SOURCES_PATH,
+    read_secrets,
+    read_sources,
+    run_pipeline,
+    write_sources,
+)
 
 # from pages.rest_api import ClientConfig, EndpointResource, RESTAPIConfig
 
 st.set_page_config(page_title="Pipelines", page_icon="🚰")
 st.title("Build Your `dlt` Pipeline")
 
-source_tab, destination_tab, run_pipeline = st.tabs(
-    ["Source", "Destination", "Run Pipeline"]
-)
 
-with source_tab:
-    source_name = st.selectbox(
-        "Choose an existing source", options=["Salesforce", "GitHub"]
-    )
-    st.text_input("Name")
+def configure_source():
+    st.markdown("### Source")
+    sources = read_sources()["sources"]
+    source_names = list(sources.keys()) if sources else []
+    source_name = st.selectbox("Choose an existing source", options=source_names)
+    return source_name
 
-with destination_tab:
-    source_name = st.selectbox("Choose a destination", options=["Snowflake", "DuckDB"])
-    left, center, right = st.columns([0.49, 0.02, 0.49])
+
+def configure_destination():
+    st.markdown("### Destination")
+    left, right = st.columns(2)
     with left:
-        database = st.text_input("Database")
-    with center:
-        st.text("")
-        st.text("")
-        st.text("")
-        st.markdown(".")
+        destination_name = st.selectbox(
+            "Choose a destination",
+            options=[
+                "DuckDB",
+                "Snowflake",
+            ],
+        )
     with right:
-        schema = st.text_input("Schema")
-with run_pipeline:
-    st.button("Run")
+        schema = st.text_input("Schema name")
+    return destination_name, schema
+    # left, center, right = st.columns([0.49, 0.02, 0.49])
+    # with left:
+    #     database = st.text_input("Database")
+    # with center:
+    #     st.text("")
+    #     st.text("")
+    #     st.text("")
+    #     st.markdown(".")
+    # with right:
+
+
+source_name = configure_source()
+if source_name:
+    destination_name, schema_name = configure_destination()
+    if schema_name != "":
+        st.markdown("### Pipeline Results")
+        if st.button("Run Pipeline"):
+            load_info = run_pipeline(source_name=source_name, schema_name=schema_name)
+            st.success(load_info)

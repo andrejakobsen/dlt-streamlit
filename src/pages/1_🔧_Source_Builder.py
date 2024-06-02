@@ -1,6 +1,12 @@
 import json
 
 import streamlit as st
+from utils import (
+    SOURCES_PATH,
+    read_secrets,
+    read_sources,
+    write_sources,
+)
 
 # from pages.rest_api import ClientConfig, EndpointResource, RESTAPIConfig
 
@@ -13,27 +19,32 @@ def source_builder(name: str):
     st.markdown(f"#### 1. Configure the base client for '{name}'")
     with st.expander("Client", expanded=True):
         client_config = get_client_config()
-    st.markdown(f"#### 2. Choose default configuration for '{name}'")
-    with st.expander("Default Configuration"):
-        resource_defaults_config = get_resource_standard_config()
+    if client_config["base_url"] != "":
+        st.markdown(f"#### 2. Choose default configuration for '{name}'")
+        with st.expander("Default Configuration"):
+            resource_defaults_config = get_resource_standard_config()
         # st.json(params)
-    st.markdown(f"#### 3. Configure the endpoints for '{name}'")
-    with st.expander("Endpoints"):
-        n_resources = st.number_input("Number of endpoints", min_value=1, max_value=50)
-        resources_config = []
+        st.markdown(f"#### 3. Configure the endpoints for '{name}'")
+        with st.expander("Endpoints"):
+            n_resources = st.number_input(
+                "Number of endpoints", min_value=1, max_value=50
+            )
+            resources_config = []
 
-        for i in range(int(n_resources)):
-            st.divider()
-            resources_config.append(get_resources_config(i))
-    source_config = {
-        "client": client_config,
-        "resource_defaults": resource_defaults_config,
-        "resources": resources_config,
-    }
-    st.markdown(f"#### 4. Make sure the conifguration for '{name}' looks as expected")
-    display_config = source_config
-    display_config["client"]["auth"] = "HIDDEN"
-    st.json(source_config)
+            for i in range(int(n_resources)):
+                st.divider()
+                resources_config.append(get_resources_config(i))
+        if resources_config[0]:
+            source_config = {
+                "client": client_config,
+                "resource_defaults": resource_defaults_config,
+                "resources": resources_config,
+            }
+            st.markdown(
+                f"#### 4. Make sure the conifguration for '{name}' looks as expected"
+            )
+            st.json(source_config)
+            return source_config
 
 
 def get_client_config():
@@ -63,11 +74,13 @@ def get_resource_standard_config(name: str = "Default"):
     col_1, col_2 = st.columns(2)
     with col_1:
         resource_defaults_config["write_disposition"] = st.radio(
-            f"{name} write disposition", ("merge", "replace", "append"), horizontal=True
+            f"Write disposition for '{name}'",
+            ("replace", "merge", "append"),
+            horizontal=True,
         )
     with col_2:
         resource_defaults_config["primary_key"] = st.text_input(
-            f"{name} primary key", placeholder="id"
+            f"Primary key for '{name}'", placeholder="id"
         )
     left, right = st.columns(2)
     params = {}
@@ -90,7 +103,7 @@ def get_resource_standard_config(name: str = "Default"):
                 params = json.loads(
                     st.text_area(
                         "Parameters in JSON format",
-                        value='{\n\t"": ""\n}',
+                        value='{\n  "": ""\n}',
                         key=f"json_text_{name}",
                     )
                 )
@@ -132,13 +145,11 @@ def get_resources_config(endpoint_idx):
     resource_config = {}
     left, right = st.columns(2)
     with left:
-        name = st.text_input(
-            f"Name of resource {endpoint_idx+1}", placeholder="Issues in dlt repo"
-        )
-    if name != "":
-        resource_config["name"] = name
+        endpoint = st.text_input(f"Endpoint {endpoint_idx+1}", placeholder="issues")
+    if endpoint != "":
         with right:
-            endpoint = st.text_input(f"Endpoint for {name}", placeholder="issues")
+            name = st.text_input(f"Name for '{endpoint}'", value=endpoint)
+            resource_config["name"] = name
         if endpoint != "":
             use_custom_params = st.checkbox(
                 f"Use custom configuration for '{name}'",
@@ -176,4 +187,7 @@ source_name = st.text_input("Name of new source", placeholder="GitHub")
 if source_name != "":
     # create_source = st.button("Create Source")
     source_config = source_builder(source_name)
-    st.button("Save source")
+    if st.button("Save source"):
+        sources = read_sources()
+        sources["sources"][source_name] = source_config
+        write_sources(sources)
