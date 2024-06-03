@@ -63,7 +63,7 @@ def get_client_config():
         ),
     )
     auth = _get_auth_input(auth_type)
-    if auth is not None:
+    if auth:
         client_config["auth"] = auth  # type: ignore
 
     return client_config
@@ -79,9 +79,9 @@ def get_resource_standard_config(name: str = "Default"):
             horizontal=True,
         )
     with col_2:
-        resource_defaults_config["primary_key"] = st.text_input(
-            f"Primary key for '{name}'", placeholder="id"
-        )
+        primary_key = st.text_input(f"Primary key for '{name}'", placeholder="id")
+        if primary_key:
+            resource_defaults_config["primary_key"] = primary_key
     left, right = st.columns(2)
     params = {}
     params_type = "JSON"
