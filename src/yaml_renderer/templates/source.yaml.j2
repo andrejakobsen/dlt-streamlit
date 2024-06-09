@@ -1,0 +1,87 @@
+client:
+  {% if base_url %}
+  base_url: "{{ base_url }}"
+  {% else %}
+  base_url: "https://..."  # Replace with API base URL
+  {% endif %}
+  {% if other_servers %}
+  # Alternative servers found in openapi spec:
+  {% endif %}
+  {% for server in other_servers %}
+  {% if server.description %}
+  # {{ server.description }}
+  {% endif %}
+  # base_url = "{{ server.url }}"
+  {% endfor %}
+  {% if credentials %}
+  auth:
+    {{ credentials.detected_auth_vars }}
+  {% endif %}
+  {% if global_paginator_config %}
+  paginator:
+    {% for key, value in global_paginator_config.items() %}
+    {{key}}:
+      {% if value is integer %}
+      {{value}}
+      {% else %}
+      "{{value}}"
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+resources:
+{% for endpoint in endpoint_collection.all_endpoints_to_render %}
+{% if endpoint.render_description %}
+# {{ endpoint.render_description}}
+{% endif %}
+- name: "{{ endpoint.detected_resource_name }}"
+  table_name: "{{ endpoint.detected_table_name }}"
+  {% if endpoint.primary_key %}
+  primary_key: "{{ endpoint.primary_key }}"
+  write_disposition: "merge"
+  {% if endpoint.id in endpoint_collection.endpoint_ids_to_deselect %}
+  selected: false
+  {% endif %}
+  {% endif %}
+  endpoint:
+    {% if endpoint.data_json_path %}
+    data_selector: "{{ endpoint.data_json_path }}"
+    {% endif %}
+    path: "{{endpoint.path }}"
+    {% if endpoint.transformer or endpoint.unresolvable_path_param_names or endpoint.unresolvable_query_params %}
+    params:
+      {% if endpoint.transformer %}
+      {% for key, value in endpoint.transformer.path_params_mapping.items()%}
+      {{key}}:
+        type: "resolve"
+        resource: "{{endpoint.parent.detected_resource_name }}"
+        field: "{{value}}"
+      {% endfor %}
+      {% endif %}
+      {% for param_name in endpoint.unresolvable_path_param_names %}
+      {{param_name}}: "{{ endpoint.default_for_param('path', param_name) }}" # TODO: fill in required path parameter
+      {% endfor %}
+      {% for param_name in endpoint.unresolvable_required_query_param_names %}
+      {{param_name}}: "{{ endpoint.default_for_param('query', param_name) }}" # TODO: fill in required query parameter
+      {% endfor %}
+      {% if endpoint.unresolvable_unrequired_query_param_names %}
+      # the parameters below can optionally be configured
+      {% for param_name in endpoint.unresolvable_unrequired_query_param_names %}
+      # {{param_name}}: "{{ endpoint.default_for_param('query', param_name) }}"
+      {% endfor %}
+      {% endif %}
+      {% endif %}
+      {% if endpoint.render_pagination_args %}
+    paginator:
+      {% for key, value in endpoint.render_pagination_args.items() %}
+      {{key}}:
+        {% if value is integer %}
+        {{value}}
+        {% else %}
+        "{{value}}"
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if endpoint.render_auto_paginator %}
+    paginator: "auto"
+    {% endif %}
+{% endfor %}

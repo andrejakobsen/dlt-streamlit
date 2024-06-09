@@ -1,17 +1,17 @@
 from pathlib import Path
+from typing import Any
 
 import dlt
 import toml
 import yaml
 from rest_api import rest_api_source
 
-DLT_FOLDER = Path(__file__).parents[1] / ".dlt"
-SOURCES_PATH = DLT_FOLDER / "sources.yaml"
-SECRETS_PATH = DLT_FOLDER / "secrets.toml"
+ROOT_DIR = Path(__file__).parents[1]
+SOURCES_PATH = ROOT_DIR / "sources"
 
 
 def run_pipeline(source_name: str, schema_name: str):
-    sources = read_sources()
+    sources = read_source()
     source_config = sources["sources"][source_name]
     source = rest_api_source(source_config)
 
@@ -24,18 +24,12 @@ def run_pipeline(source_name: str, schema_name: str):
     return load_info
 
 
-def write_sources(config):
+def write_source(config):
     with open(SOURCES_PATH, "wb+") as file:
         yaml.safe_dump(config, file, encoding="utf-8")
 
 
-def read_sources():
-    if not SOURCES_PATH.exists():
-        return {"sources": {}}
-    with open(SOURCES_PATH, "r") as file:
-        return yaml.safe_load(file)
-
-
-def read_secrets():
-    with open(SECRETS_PATH, "r") as file:
-        return toml.load(file)
+def read_source(name: str) -> dict[str, Any]:
+    SOURCES_PATH.mkdir(exist_ok=True)
+    source_path = SOURCES_PATH / f"{name}.yaml"
+    return yaml.safe_load(source_path.read_text()) if source_path.exists() else {}
