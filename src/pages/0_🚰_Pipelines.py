@@ -1,10 +1,9 @@
 import streamlit as st
 from utils import (
     SOURCES_PATH,
-    read_secrets,
-    read_sources,
+    get_source_names,
+    read_source_config,
     run_pipeline,
-    write_sources,
 )
 
 # from pages.rest_api import ClientConfig, EndpointResource, RESTAPIConfig
@@ -15,8 +14,7 @@ st.title("Build Your `dlt` Pipeline")
 
 def configure_source():
     st.markdown("### Source")
-    sources = read_sources()["sources"]
-    source_names = list(sources.keys()) if sources else []
+    source_names = get_source_names()
     source_name = st.selectbox("Choose an existing source", options=source_names)
     return source_name
 

@@ -16,7 +16,7 @@ def create_pipeline(
     path: Optional[pathlib.Path] = None,
     output_path: Optional[pathlib.Path] = None,
     config_path: Optional[pathlib.Path] = None,
-    interactive: bool = True,
+    interactive: bool = False,
     log_level: int = 20,
     global_limit: int = 0,
     update_rest_api_source: bool = False,

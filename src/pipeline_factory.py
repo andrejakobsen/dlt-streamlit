@@ -7,11 +7,11 @@ from rest_api import (
     rest_api_resources,
     rest_api_source,
 )
-from utils import read_secrets, read_sources
+from utils import read_secrets, read_source_config
 
 
 def run_pipeline(source_name: str, schema_name: str):
-    sources = read_sources()
+    sources = read_source_config()
     source_config = sources["sources"][source_name]
     # secrets = read_secrets()
     source = rest_api_source(source_config)
